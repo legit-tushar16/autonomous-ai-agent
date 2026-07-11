@@ -1,4 +1,3 @@
-# main.py
 import uvicorn
 from fastapi import FastAPI, HTTPException
 
@@ -21,6 +20,12 @@ async def run_agent(payload: AgentRequest):
     runs the generation tasks in parallel with safe rate limiting, runs a critique check,
     and returns a structured status along with a compiled Word Document file path.
     """
+    # Validation: Ensure the request is not empty or just whitespace
+    if not payload.request or not payload.request.strip():
+        raise HTTPException(status_code=422, detail="Input 'request' field cannot be empty.")
+    if not payload.request or len(payload.request.strip()) < 10:
+        raise HTTPException(status_code=422, detail="Request is too short. Please provide a descriptive business request (min 10 characters).")
+
     try:
         # payload.request maps explicitly to the core JSON requirement {"request": "..."}
         tasks_completed, document_file_path = await agent.execute(payload.request)
